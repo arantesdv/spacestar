@@ -8,4 +8,6 @@ BOOTSTRAP_SCRIPT: str = ('<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.
                          '"anonymous"></script>')
 META_VIEWPORT: str = '<meta name="viewport" content="width=device-width, initial-scale=1">'
 META_CHARSET: str = '<meta charset="utf-8">'
+HEAD_STYLE_LINK: str = '<link rel="stylesheet" href="static/css/main.css">'
+HEAD_SCRIPT: str = '<script src="static/js/main.js"></script>'
 

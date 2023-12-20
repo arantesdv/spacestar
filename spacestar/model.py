@@ -10,6 +10,14 @@ from spacestar.component import init_element, Element
 @md.modelmap
 class SpaceModel(md.Model):
     
+    @property
+    def tablekey(self) -> str:
+        return f'{self.table()}.{self.key}'
+    
+    @property
+    def table_key(self) -> str:  #TODO: deletar
+        return self.tablekey
+    
     @classmethod
     def htmx(cls, **kwargs):
         return functions.join_htmx_attrs(**kwargs)
