@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-from functools import partial
-
-from hx_markup import Element, functions
-from markupsafe import Markup
+from hx_markup.element import Element
+from spacestar import CSS_HEAD_BUBLES, SCRIPT_BODY_BUBLES
 
 
 def init_element(tag, /, *args, **kwargs) -> Element:
@@ -43,8 +41,10 @@ def page_head(title: str = None, children: list[Element | str] = None) -> Elemen
             Element('meta', content="width=device-width, initial-scale=1", name='viewport'),
             Element('title', children=title),
             bootstrap_link,
-            Element('script', src='/static/js/main.js'),
-            Element('link', rel='stylesheet', href='/static/css/main.css'),
+            CSS_HEAD_BUBLES
+            # Element('style', children=[Render.selector_style('*', {'margin': '0', 'padding': '0'}), 'html {background-image: radial_gradient(x1:0, y1:0, x2:x=width, y2:y=height, padding: 0}']),
+            # Element('script', src='/static/js/main.js'),
+            # Element('link', rel='stylesheet', href='/static/css/main.css'),
     
     ])
     
@@ -58,12 +58,8 @@ def page_head(title: str = None, children: list[Element | str] = None) -> Elemen
 
 def page_body(*args, **kwargs) -> Element:
     children = kwargs.pop('children', [])
-    if children:
-        children.append(bootstrap_sript)
-        return Element('body', *args, children=children, **kwargs)
-    else:
-        return Element('body', *args, children=bootstrap_sript, **kwargs)
-
+    children.append(SCRIPT_BODY_BUBLES)
+    return Element('body', *args, children=children, **kwargs)
 
 
 def page_html(lang: str, title: str, children: list[Element | str] = None) -> Element:
@@ -73,37 +69,9 @@ def page_html(lang: str, title: str, children: list[Element | str] = None) -> El
     ], before='<!DOCTYPE html>')
 
 
-def dropdown_login_form():
-    text = """
-    <div class="dropdown">
-      <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
-        Login de Usuário
-      </button>
-      <form class="dropdown-menu p-4">
-        <div class="mb-3">
-          <label for="username" class="form-label">Usuário</label>
-          <input type="email" class="form-control" id="username" placeholder="email do usuário">
-        </div>
-        <div class="mb-3">
-          <label for="password" class="form-label">Password</label>
-          <input type="password" class="form-control" id="password" placeholder="senha de usuário">
-        </div>
-        <button type="submit" class="btn btn-primary">login</button>
-      </form>
-    </div>
-    """
-    return Markup(text)
-
 def nav_list(children, /, *args, **kwargs) -> Element:
     return init_element('ul', '.navbar-nav', *args, children=children, **kwargs)
-    # classlist = functions.string_to_list(kwargs.pop('classlist', []))
-    # classlist.append('navbar-nav')
-    # content = kwargs.pop('content', [])
-    # styles = kwargs.pop('styles', dict())
-    # htmx = kwargs.pop('htmx', dict())
-    # id = kwargs.pop('id', None)
-    # return Element('ul', classlist=classlist, content=content, keywords=kwargs, htmx=htmx, styles=styles, id=id, booleans=[*args])
-
+ 
 def nav_item(children: str | Element, *args, **kwargs) -> Element:
     return init_element('li', '.nav-item', *args, children=children, **kwargs)
 

@@ -167,7 +167,7 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "hx-markup"
-version = "0.2.0"
+version = "0.2.1"
 description = "HTML markup using python classes, including HTMX language."
 category = "main"
 optional = false
@@ -239,7 +239,7 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "ormspace"
-version = "0.1.8"
+version = "0.2.0"
 description = "Pydantic models working with deta.space api, including ORM features."
 category = "main"
 optional = false
@@ -392,7 +392,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "67dc6ae95b7f53ee59020494c56b12c76fea7bbd8595f2f9b69ddfae6e51360e"
+content-hash = "f1852873df40b2442ca0c839c4c0f9abfa715a42ff591c916a6130568a1d5e2c"
 
 [metadata.files]
 aiohttp = []

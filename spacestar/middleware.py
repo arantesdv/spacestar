@@ -1,11 +1,9 @@
-import os
-from secrets import token_hex
 
 from starlette.middleware import Middleware
 from starlette.middleware.sessions import SessionMiddleware
 
-from spacestar.settings import SpaceStarSettings
 
-settings = SpaceStarSettings()
+from spacestar import spacestar_settings
 
-session_middleware = Middleware(SessionMiddleware, secret_key=settings.session_secret)
+
+session_middleware = Middleware(SessionMiddleware, secret_key=spacestar_settings.session_secret)

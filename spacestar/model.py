@@ -4,6 +4,9 @@ import io
 
 from ormspace import model as md
 from hx_markup import functions
+from ormspace.keys import Key, TableKey
+from starlette.requests import Request
+
 from spacestar.component import init_element, Element
 
 
@@ -22,6 +25,10 @@ class SpaceModel(md.Model):
     def htmx(cls, **kwargs):
         return functions.join_htmx_attrs(**kwargs)
     
+    @classmethod
+    def field(cls, name: str):
+        return cls.model_fields.get(name, None)
+    
     async def display(self):
         with io.StringIO() as f:
             container: Element = init_element('div', id=self.table_key)
@@ -35,6 +42,23 @@ class SpaceModel(md.Model):
             kwargs['children'] = str(self)
             f.write(str(init_element(tag, *args, **kwargs)))
             return f.getvalue()
+        
+    @classmethod
+    def query_from_request(cls, request: Request):
+        q, fields = {}, {**cls.model_fields}
+        for k, v in request.query_params.items():
+            q[f'{k}?contains'] = v.lower()
+        return q
+    
+    @classmethod
+    def query_from_dict(cls, data: dict):
+        q, fields = {}, {**cls.model_fields}
+        if data:
+            for k, f in fields.items():
+                if k in data.keys():
+                    if f.annotation in [str, list[str]]:
+                        q[f'{k}?contains'] = data[k]
+        return q
         
 
         

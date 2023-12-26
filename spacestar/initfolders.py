@@ -1,14 +1,12 @@
 import os
 
 import hx_markup
-from hx_markup.element import Style, StyleStatement
-
 import spacestar
 
 
 def create_templates_directory():
     os.makedirs(os.path.join(os.getcwd(), 'templates'), exist_ok=True)
-    with open(os.path.join(os.getcwd(), 'templates', 'index.html'), 'w') as f:
+    with open(os.path.join(os.getcwd(), 'templates', 'index_from_string.html'), 'w') as f:
         f.write('<!doctype html>')
         f.write(str(hx_markup.Element('html', children=[
                 hx_markup.Element('head', children=[spacestar.META_CHARSET, spacestar.META_VIEWPORT,spacestar.BOOTSTRAP_LINK, spacestar.HEAD_STYLE_LINK, spacestar.HEAD_SCRIPT]),
