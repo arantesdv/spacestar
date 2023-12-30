@@ -1,21 +1,24 @@
 from __future__ import annotations
 
 import os.path
+from collections import defaultdict
 from functools import wraps
-from typing import Optional
+from typing import Callable, Optional
 
 import jinja2
 import uvicorn
-from lxml import etree
+from hx_markup import Element
 from lxml.builder import E
 from starlette.applications import Starlette
 from starlette.requests import Request
-from starlette.responses import HTMLResponse
+from starlette.responses import HTMLResponse, Response
 from starlette.routing import Mount, Route, Router
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
+from starlette.datastructures import FormData
 
-from spacestar import component as cp, spacestar_settings, templates as tp
+
+from spacestar import component as cp, spacestar_settings
 from spacestar.middleware import session_middleware
 from spacestar.templates import app_context
 
@@ -29,6 +32,7 @@ class SpaceStar(Starlette):
     title - The title for home page. Defaults to "SpaceStar".
     static_directory - A string indicating the location of static folder, relative to working directory.
     templates_directory - A string indicating the location of jinja2 templates_directory.
+    index_template - index template as a string.
     debug - Boolean indicating if debug tracebacks should be returned on errors.
     routes - A list of routes to serve incoming HTTP and WebSocket requests.
     middleware - A list of middleware to run for every request. A starlette application will always automatically include two middleware classes. ServerErrorMiddleware is added as the very outermost middleware, to handle any uncaught errors occurring anywhere in the entire stack. ExceptionMiddleware is added as the very innermost middleware, to deal with handled exception cases occurring in the routing or endpoints.
@@ -47,11 +51,7 @@ class SpaceStar(Starlette):
         self.title: str = kwargs.pop('title', 'SpaceStar')
         self.static_directory: Optional[str] = kwargs.pop('static_directory', None)
         self.templates_directory: Optional[str] = kwargs.pop('templates_directory', None)
-        self.index_template: Optional[str] = kwargs.pop('index_template', tp.INDEX_TEMPLATE)
-        self.head_template: Optional[str] = kwargs.pop('head_template', None)
-        self.header_template: Optional[str] = kwargs.pop('header_template', None)
-        self.footer_template: Optional[str] = kwargs.pop('footer_template', None)
-        self.body_scripts: Optional[str] = kwargs.pop('body_scripts', None)
+        self.index_template: Optional[str] = kwargs.pop('index_template', None)
 
         if self.templates_directory:
             self.templates = Jinja2Templates(
@@ -59,40 +59,20 @@ class SpaceStar(Starlette):
         else:
             self.templates = Jinja2Templates(
                     env=jinja2.Environment(), context_processors=[app_context])
+            
+        if all([self.templates_directory is None, self.index_template is None]):
+            raise ValueError('SpaceStar requires either templates_directory or index_template')
 
         super().__init__(middleware=middleware, **kwargs)
         if self.static_directory:
             self.routes.insert(1, Mount(
                     '/static',
-                    app=StaticFiles(directory=os.path.join(os.getcwd(), self.static_directory)), name='static'))
+                    app=StaticFiles(directory=os.path.join(os.getcwd(), self.static_directory)),
+                    name='static'))
     
     def set_global(self, name, value):
         self.templates.env.globals[name] = value
-            
-    @property
-    def head(self) -> str:
-        if self.head_template:
-            if isinstance(self.head_template, str):
-                return self.head_template
-            return ''.join([str(i) for i in self.head_template])
-        return ''
     
-    @property
-    def header(self) -> str:
-        if self.header_template:
-            if isinstance(self.header_template, str):
-                return self.header_template
-            return ''.join([str(i) for i in self.header_template])
-        return tp.HEADER_TEMPLATE.format(self.title)
-    
-    @property
-    def footer(self) -> str:
-        if self.footer_template:
-            if isinstance(self.footer_template, str):
-                return self.footer_template
-            return ''.join([str(i) for i in self.footer_template])
-        return ''
-        
     def from_string(self, source: str):
         return self.templates.env.from_string(source=source, globals=self.globals)
     
@@ -103,20 +83,17 @@ class SpaceStar(Starlette):
     @property
     def index_from_string(self):
         return self.from_string(self.index_template)
-    
-    async def home_page(self, request: Request, title: str | None = None):
-        return self.response(request, title=title or self.title)
 
     @property
     def index(self) -> jinja2.Template:
         if self.templates_directory:
             return self.templates.get_template('index.html')
         return self.index_from_string
-    
+
     @staticmethod
     def element(tag, *args, **kwargs):
-        return cp.init_element(tag, *args, **kwargs)
-    
+        return Element(tag, *args, **kwargs)
+
     def render(self, request, / , template: str = None, source: str = None, **kwargs) -> str:
         kwargs['app'] = request.app
         kwargs['request'] = request
@@ -125,10 +102,10 @@ class SpaceStar(Starlette):
         elif source:
             return self.from_string(source=source).render(**kwargs)
         return self.index.render(**kwargs)
-    
+
     def response(self, request: Request, /, template: str = None, source: str = None, **kwargs) -> HTMLResponse:
         return HTMLResponse(self.render(request, template=template, source=source, **kwargs))
-    
+
     def run(self, *args, **kwargs):
         if args:
             string = ':'.join(args)
@@ -136,30 +113,40 @@ class SpaceStar(Starlette):
             string = f'{self.module}:{self.app_name}'
         port = kwargs.pop('port', self.settings.port)
         uvicorn.run(string, port=port, **kwargs)
-    
-    def create_route(self, _endpoint=None, *, path: str = None, name: str = None, methods: list[str] = None):
+
+    def create_route(self, path: str, *, name: str = None, methods: list[str] = None):
         def decorator(endpoint):
             @wraps(endpoint)
             def wrapper():
                 self.append(Route(path=path, endpoint=endpoint, name=name, methods=methods or ['GET']))
                 return self
             return wrapper()
-            
-        if _endpoint is None:
-            return decorator
-        else:
-            return decorator(_endpoint)
-    
+        return decorator
+
     def append(self, app: Route | Mount | Router) -> None:
         self.routes.append(app)
-        
+
     def prepend(self, app: Route | Mount | Router) -> None:
         self.routes.insert(0, app)
         
+    @staticmethod
+    async def process_form_data(request: Request) -> dict:
+        form_data: FormData = await request.form()
+        data, result = defaultdict(list), {}
+        for key, value in form_data.items():
+            data[key].append(value)
+        for key in data:
+            value = data[key]
+            if len(value) == 0:
+                result[key] = None
+            elif len(value) == 1:
+                result[key] = value[0]
+            else:
+                result[key] = value
+        return result
+        
     @property
     def E(self):
-        return E
-
-            
+        return Element
 
 

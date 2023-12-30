@@ -1,29 +1,10 @@
 from __future__ import annotations
 
-from hx_markup.element import Element
+from hx_markup.element import Element, Style, Script
 from spacestar import CSS_HEAD_BUBLES, SCRIPT_BODY_BUBLES
 
 
-def init_element(tag, /, *args, **kwargs) -> Element:
-    booleans = [*args]
-    children = kwargs.pop('children', [])
-    dataset = kwargs.pop('dataset', {})
-    classlist = kwargs.pop('classlist', [])
-    styles = kwargs.pop('styles', {})
-    htmx = kwargs.pop('htmx', {})
-    id = kwargs.pop('id', None)
-    for item in booleans[:]:
-        if item.startswith('#'):
-            if not id:
-                id = item[1:]
-            booleans.remove(item)
-        elif item.startswith('.'):
-            classlist.append(item[1:])
-            booleans.remove(item)
-    return Element(tag, id, booleans, classlist, kwargs, htmx, dataset, styles, children=children)
-
-
-bootstrap_sript = Element('script', src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js",
+bootstrap_sript = Script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js",
         integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL",
         crossorigin="anonymous"
 )
@@ -70,14 +51,15 @@ def page_html(lang: str, title: str, children: list[Element | str] = None) -> El
 
 
 def nav_list(children, /, *args, **kwargs) -> Element:
-    return init_element('ul', '.navbar-nav', *args, children=children, **kwargs)
+    return Element('ul', '.navbar-nav', *args, children=children, **kwargs)
+ 
  
 def nav_item(children: str | Element, *args, **kwargs) -> Element:
-    return init_element('li', '.nav-item', *args, children=children, **kwargs)
+    return Element('li', '.nav-item', *args, children=children, **kwargs)
 
 
 def nav_link(children: str | Element, href: str, *args, **kwargs) -> Element:
-    return init_element('a', '.nav-link', *args, href=href, children=children, **kwargs)
+    return Element('a', '.nav-link', *args, href=href, children=children, **kwargs)
 
 
 def full_nav_list(data: list[tuple[str, str]]) -> Element:

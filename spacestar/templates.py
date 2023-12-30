@@ -133,13 +133,9 @@ INDEX_TEMPLATE = """
         <meta charset="utf-8"/>
         <meta content="width=device-width, initial-scale=1" name="viewport"/>
         <title>{{title or request.app.title}}</title>
-        {{head or request.app.head}}
      </head>
      <body id="body">
-        {{ header or request.app.header }}</header>
-        <main id="main"><div id="wrapper" class="p-3 bg-dark bg-opacity-75">{{ main or request.app.main }}</div></main>
-        {{ footer or request.app.footer }}
-        {{ body_scripts or request.app.body_scripts }}
+        <main id="main"><div id="wrapper" class="p-3 bg-dark bg-opacity-75">{{ main }}</div></main>
      </body>
 </html>
 """

@@ -63,28 +63,28 @@ legend, label, a {color: var(--primary-color);}
 </style>
 """
 
-if not os.getenv('SESSION_SECRET', None):
-    with open(os.path.join(os.getcwd(), '.env'), 'r') as env_file:
-        for line in env_file:
-            if line.startswith('SESSION_SECRET'):
-                CREATE_SESSION_SECRET = False
-                break
-
-if CREATE_SESSION_SECRET:
-    with open(os.path.join(os.getcwd(), '.env'), 'a') as f:
-        f.write(f'\nSESSION_SECRET={token_hex(32)}')
-        
-        
-if not os.getenv('CSRF_SECRET', None):
-    with open(os.path.join(os.getcwd(), '.env'), 'r') as env_file:
-        for line in env_file:
-            if line.startswith('CSRF_SECRET'):
-                CREATE_CSRF_SECRET = False
-                break
-
-if CREATE_CSRF_SECRET:
-    with open(os.path.join(os.getcwd(), '.env'), 'a') as f:
-        f.write(f'\nCSRF_SECRET={token_hex(32)}')
-        
+# if not os.getenv('SESSION_SECRET', None):
+#     with open(os.path.join(os.getcwd(), '.env'), 'r') as env_file:
+#         for line in env_file:
+#             if line.startswith('SESSION_SECRET'):
+#                 CREATE_SESSION_SECRET = False
+#                 break
+#
+# if CREATE_SESSION_SECRET:
+#     with open(os.path.join(os.getcwd(), '.env'), 'a') as f:
+#         f.write(f'\nSESSION_SECRET={token_hex(32)}')
+#
+#
+# if not os.getenv('CSRF_SECRET', None):
+#     with open(os.path.join(os.getcwd(), '.env'), 'r') as env_file:
+#         for line in env_file:
+#             if line.startswith('CSRF_SECRET'):
+#                 CREATE_CSRF_SECRET = False
+#                 break
+#
+# if CREATE_CSRF_SECRET:
+#     with open(os.path.join(os.getcwd(), '.env'), 'a') as f:
+#         f.write(f'\nCSRF_SECRET={token_hex(32)}')
+#
 
 spacestar_settings = SpaceStarSettings()

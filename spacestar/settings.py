@@ -1,7 +1,6 @@
 from typing import Optional
 
-from ormspace.settings import SpaceSettings
-from pydantic import ConfigDict
+from ormspace.space_settings import SpaceSettings
 
 
 class SpaceStarSettings(SpaceSettings):

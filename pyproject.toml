@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "spacestar"
-version = "0.1.4"
+version = "0.1.5"
 description = "Framework for building web based apps with the power of Starlette, Pydantic and Deta Space."
 authors = ["Daniel Arantes <arantesdv@me.com>"]
 license = "MIT"
@@ -13,8 +13,8 @@ uvicorn = "^0.24.0"
 itsdangerous = "^2.1.2"
 python-multipart = "^0.0.6"
 Jinja2 = "^3.1.2"
-ormspace = "^0.2.0"
-hx-markup = "^0.2.1"
+ormspace = "^0.2.2"
+hx-markup = "^0.2.2"
 
 [tool.poetry.dev-dependencies]
 
