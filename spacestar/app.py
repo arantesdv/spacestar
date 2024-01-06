@@ -2,25 +2,40 @@ from __future__ import annotations
 
 import os.path
 from collections import defaultdict
+from contextlib import asynccontextmanager
+from contextvars import ContextVar
 from functools import wraps
-from typing import Callable, Optional
+from typing import Any, Optional
 
 import jinja2
 import uvicorn
 from hx_markup import Element
-from lxml.builder import E
+from markupsafe import Markup
 from starlette.applications import Starlette
 from starlette.requests import Request
-from starlette.responses import HTMLResponse, Response
+from starlette.responses import HTMLResponse
 from starlette.routing import Mount, Route, Router
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 from starlette.datastructures import FormData
 
 
-from spacestar import component as cp, spacestar_settings
+from spacestar import spacestar_settings
 from spacestar.middleware import session_middleware
-from spacestar.templates import app_context
+
+response_contextvar = ContextVar("response_contextvar", default={})
+
+def app_context(request: Request) -> dict[str, Any]:
+    return {'app': request.app}
+
+@asynccontextmanager
+async def response_context(request: Request, **kwargs):
+    response_token = response_contextvar.set(kwargs)
+    try:
+        yield request.app.response(request, **response_contextvar.get())
+    finally:
+        response_contextvar.reset(response_token)
+
 
 
 class SpaceStar(Starlette):
@@ -52,7 +67,8 @@ class SpaceStar(Starlette):
         self.static_directory: Optional[str] = kwargs.pop('static_directory', None)
         self.templates_directory: Optional[str] = kwargs.pop('templates_directory', None)
         self.index_template: Optional[str] = kwargs.pop('index_template', None)
-
+        self._page_content = None
+        self._page_title = None
         if self.templates_directory:
             self.templates = Jinja2Templates(
                     directory=os.path.join(os.getcwd(), self.templates_directory),context_processors=[app_context])
@@ -72,6 +88,29 @@ class SpaceStar(Starlette):
     
     def set_global(self, name, value):
         self.templates.env.globals[name] = value
+        
+    @property
+    def page_content(self):
+        try:
+            return self._page_content
+        finally:
+            self._page_content = ''
+    
+    @page_content.setter
+    def page_content(self, value: Markup):
+        self._page_content = value
+    
+    @property
+    def page_title(self):
+        try:
+            return self._page_title
+        finally:
+            self._page_title = ''
+    
+    @page_title.setter
+    def page_title(self, value: Markup):
+        self._page_title = value
+        
     
     def from_string(self, source: str):
         return self.templates.env.from_string(source=source, globals=self.globals)
@@ -103,7 +142,7 @@ class SpaceStar(Starlette):
             return self.from_string(source=source).render(**kwargs)
         return self.index.render(**kwargs)
 
-    def response(self, request: Request, /, template: str = None, source: str = None, **kwargs) -> HTMLResponse:
+    def response(self, request: Request, *, template: str = None, source: str = None, **kwargs) -> HTMLResponse:
         return HTMLResponse(self.render(request, template=template, source=source, **kwargs))
 
     def run(self, *args, **kwargs):
@@ -128,6 +167,9 @@ class SpaceStar(Starlette):
 
     def prepend(self, app: Route | Mount | Router) -> None:
         self.routes.insert(0, app)
+        
+    def insert(self, index: int, app: Route | Mount) -> None:
+        self.routes.insert(index, app)
         
     @staticmethod
     async def process_form_data(request: Request) -> dict:

@@ -1,17 +1,13 @@
 from __future__ import annotations
 
-import io
-import os
 from abc import ABC, abstractmethod
-from collections import defaultdict
-from functools import wraps
-from typing import Optional
 
 from hx_markup import Element, functions
 from hx_markup.element import Div, NodeText
 from jinja2 import Template
 from lxml import etree
 from lxml.builder import E
+from markupsafe import Markup
 from ormspace.alias import QUERIES
 from ormspace.model import getmodel
 from starlette.requests import Request
@@ -91,14 +87,14 @@ class ListResponse(ModelResponse):
     async def template_data(self) -> dict:
         return {
                 'header': Element('header', Div('.container-fluid', Element('h1', NodeText(self.app.title)))),
-                'main': etree.tounicode(
+                'content': Markup(etree.tounicode(
                         E.div(
                                 E.h2(f'lista de {self.model.plural()}'),
-                                E.ul(*[E.li(str(i), {'class': 'list-group-item text-white'}) for i in
+                                E.ul(*[E.li(f'{i.key} {i}', {'class': 'list-group-item text-white'}) for i in
                                        await self.instances()],
                                      {'class': 'list-group', 'style': 'overflow-y: auto; max-height: 80%;'})
                         
-                        )
+                        ))
                         
                 ),
                 'footer': etree.tounicode(E.footer(f'resultados para {functions.write_args(self.query.values())}', id='footer'))

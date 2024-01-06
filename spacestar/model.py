@@ -2,15 +2,41 @@ from __future__ import annotations
 
 import io
 
+from anyio import create_task_group
 from ormspace import model as md
 from hx_markup import functions
+from ormspace.model import getmodel
 from starlette.requests import Request
+from typing_extensions import Self
 
-from spacestar.component import Element
+from exclude.component import Element
 
 
 @md.modelmap
 class SpaceModel(md.Model):
+    
+    def set_dependencies(self):
+        for k, v in self.model_fields.items():
+            if k in self.key_field_names():
+                fd = getattr(self, k)
+                fd.set_instance(getmodel(self.instance_name_for(k)).Database.instance_from_context(fd.key))
+            elif k in self.tablekey_field_names():
+                if tk:= getattr(self, k):
+                    tk.set_instance(tk.table).Database.instance_from_context(tk.key)
+                    
+    async def update_instance_context(self):
+        data = self.asjson()
+        async with create_task_group() as tks:
+            for m in self.dependencies():
+                if m.model_key_name() in data:
+                    query = {'key': data[m.model_key_name()]}
+                    print(query)
+                    tks.start_soon(m.update_model_context, False, query)
+        self.set_dependencies()
+    
+    @classmethod
+    async def fetch_instance(cls, key: str) -> Self:
+        return cls(**await cls.fetch_one(key))
     
     @property
     def tablekey(self) -> str:
@@ -21,25 +47,21 @@ class SpaceModel(md.Model):
         return self.tablekey
     
     @classmethod
-    def htmx(cls, **kwargs):
-        return functions.join_htmx_attrs(**kwargs)
-    
-    @classmethod
     def field(cls, name: str):
         return cls.model_fields.get(name, None)
     
     async def display(self):
         with io.StringIO() as f:
-            container: Element = init_element('div', id=self.table_key)
-            container.children.append(init_element('h3', children=str(self)))
-            container.children.append(init_element('ul', '.nav', children=[init_element('li','.nav-item', children=f'{k}: {v}') for k, v in dict(self).items()]))
+            container: Element = Element('div', id=self.table_key)
+            container.children.append(Element('h3', children=str(self)))
+            container.children.append(Element('ul', '.nav', children=[Element('li','.nav-item', children=f'{k}: {v}') for k, v in dict(self).items()]))
             f.write(str(container))
             return f.getvalue()
         
     async def heading(self, tag: str, *args, **kwargs):
         with io.StringIO() as f:
             kwargs['children'] = str(self)
-            f.write(str(init_element(tag, *args, **kwargs)))
+            f.write(str(Element(tag, *args, **kwargs)))
             return f.getvalue()
         
     @classmethod
