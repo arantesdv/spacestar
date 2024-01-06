@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "spacestar"
-version = "0.1.6"
+version = "0.1.7"
 description = "Framework for building web based apps with the power of Starlette, Pydantic and Deta Space."
 authors = ["Daniel Arantes <arantesdv@me.com>"]
 license = "MIT"
