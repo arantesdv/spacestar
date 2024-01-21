@@ -12,16 +12,15 @@ import uvicorn
 from hx_markup import Element
 from markupsafe import Markup
 from starlette.applications import Starlette
+from starlette.middleware import Middleware
+from starlette.middleware.sessions import SessionMiddleware
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
 from starlette.routing import Mount, Route, Router
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 from starlette.datastructures import FormData
-
-
-from spacestar import spacestar_settings
-from spacestar.middleware import session_middleware
+from ormspace.settings import Settings
 
 response_contextvar = ContextVar("response_contextvar", default={})
 
@@ -57,9 +56,9 @@ class SpaceStar(Starlette):
     lifespan - A lifespan context function, which can be used to perform startup and shutdown tasks. This is a newer style_path that replaces the on_startup and on_shutdown handlers. Use one or the other, not both.
     """
     def __init__(self, **kwargs):
-        self.settings = spacestar_settings
+        self.settings = Settings()
         middleware = kwargs.pop('middleware', [])
-        middleware.insert(0, session_middleware)
+        middleware.insert(0, Middleware(SessionMiddleware, secret_key=self.settings.session_secret))
         self.module: str = kwargs.pop('module', 'main')
         self.app_name: str = kwargs.pop('app_name', 'app')
         self.lang: str = kwargs.pop('lang', 'en')
@@ -178,13 +177,14 @@ class SpaceStar(Starlette):
         for key, value in form_data.items():
             data[key].append(value)
         for key in data:
-            value = data[key]
-            if len(value) == 0:
-                result[key] = None
-            elif len(value) == 1:
-                result[key] = value[0]
-            else:
-                result[key] = value
+            if not key == 'search':
+                value = data[key]
+                if len(value) == 0:
+                    result[key] = None
+                elif len(value) == 1:
+                    result[key] = value[0]
+                else:
+                    result[key] = value
         return result
         
     @property

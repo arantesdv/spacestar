@@ -1,11 +1,3 @@
-import os
-from secrets import token_hex
-
-from hx_markup.element import NodeText, Render
-from lxml.builder import E
-
-from spacestar.settings import SpaceStarSettings
-
 
 BOOTSTRAP_LINK: str = ('<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" '
                        'rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK'
@@ -62,29 +54,3 @@ legend, label, a {color: var(--primary-color);}
 .circle {width: 1vw; height: 1vw; footer: 0; left: 50%; border-radius: 50%; background-image: radial-gradient(circle at 50%, var(--light-color), var(--primary-color)); transition: all 1s ease-in-out; display: none;}
 </style>
 """
-
-# if not os.getenv('SESSION_SECRET', None):
-#     with open(os.path.join(os.getcwd(), '.env'), 'r') as env_file:
-#         for line in env_file:
-#             if line.startswith('SESSION_SECRET'):
-#                 CREATE_SESSION_SECRET = False
-#                 break
-#
-# if CREATE_SESSION_SECRET:
-#     with open(os.path.join(os.getcwd(), '.env'), 'a') as f:
-#         f.write(f'\nSESSION_SECRET={token_hex(32)}')
-#
-#
-# if not os.getenv('CSRF_SECRET', None):
-#     with open(os.path.join(os.getcwd(), '.env'), 'r') as env_file:
-#         for line in env_file:
-#             if line.startswith('CSRF_SECRET'):
-#                 CREATE_CSRF_SECRET = False
-#                 break
-#
-# if CREATE_CSRF_SECRET:
-#     with open(os.path.join(os.getcwd(), '.env'), 'a') as f:
-#         f.write(f'\nCSRF_SECRET={token_hex(32)}')
-#
-
-spacestar_settings = SpaceStarSettings()

@@ -53,7 +53,7 @@ class SpaceModel(md.Model):
         with io.StringIO() as f:
             container: Element = Element('div', id=self.table_key)
             container.children.append(Element('h3', children=str(self)))
-            container.children.append(Element('ul', '.nav', children=[Element('li','.nav-item', children=f'{k}: {v}') for k, v in dict(self).items()]))
+            container.children.append(Element('ul', '.nav', children=[Element('li','.nav-item', children=f'{k}: {v}') for k, v in dict(self).items() if v]))
             f.write(str(container))
             return f.getvalue()
         
@@ -84,3 +84,5 @@ class SpaceModel(md.Model):
         
     
     
+class SpaceSearchModel(SpaceModel, md.SearchModel):
+    pass
