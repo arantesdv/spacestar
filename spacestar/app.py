@@ -11,6 +11,7 @@ import jinja2
 import uvicorn
 from hx_markup import Element
 from markupsafe import Markup
+from ormspace import functions
 from starlette.applications import Starlette
 from starlette.middleware import Middleware
 from starlette.middleware.sessions import SessionMiddleware
@@ -135,6 +136,7 @@ class SpaceStar(Starlette):
     def render(self, request, / , template: str = None, source: str = None, **kwargs) -> str:
         kwargs['app'] = request.app
         kwargs['request'] = request
+        kwargs['id'] = functions.random_id(7)
         if template:
             return self.templates.get_template(template).render(**kwargs)
         elif source:

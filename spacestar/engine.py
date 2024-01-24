@@ -14,7 +14,6 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse
 
 from spacestar.app import SpaceStar
-from spacestar.model import SpaceModel
 
 
 

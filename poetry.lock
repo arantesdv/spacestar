@@ -239,7 +239,7 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "ormspace"
-version = "0.2.6"
+version = "0.2.8"
 description = "Pydantic models working with deta.space api, including ORM features."
 category = "main"
 optional = false
@@ -392,7 +392,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "0068b89a2926324bbb39613412cbd06cf9285b208690d632a0d4bfe2b30f6c7a"
+content-hash = "0226180cac1d5f84c0327fd6b93a55b144b2a66a91cde22454093d914bf33ad3"
 
 [metadata.files]
 aiohttp = []
