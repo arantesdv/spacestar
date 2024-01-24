@@ -136,7 +136,7 @@ class SpaceStar(Starlette):
     def render(self, request, / , template: str = None, source: str = None, **kwargs) -> str:
         kwargs['app'] = request.app
         kwargs['request'] = request
-        kwargs['id'] = functions.random_id(7)
+        kwargs['id'] = functions.random_id(4)
         if template:
             return self.templates.get_template(template).render(**kwargs)
         elif source:

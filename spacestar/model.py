@@ -2,6 +2,7 @@ from __future__ import annotations
 
 
 from hx_markup.element import NodeText
+from markdown import markdown
 from ormspace import model as md
 
 
@@ -12,9 +13,15 @@ from typing_extensions import Self
 class SpaceModel(md.Model):
     
     def element_detail(self) -> Element:
-        container: Element = Element('div', id=getattr(self, 'tablekey'))
+        container: Element = Element('div', id=self.tablekey)
         container.children.append(Element('h3', children=str(self)))
-        container.children.append(Element('ul', '.list-group', children=[Element('li','.list-group-item', children=f'{k}: {v}') for k, v in dict(self).items() if v]))
+        for k, v in self.model_fields.items():
+            if value:= getattr(self, k):
+                container.children.append(f"""
+                ##### {v.title or k}
+                {markdown(value)}
+                """)
+        # container.children.append(Element('ul', '.list-group', children=[Element('li','.list-group-item', children=f'{markdown(f"""# {k}""")}') for k, v in dict(self).items() if v]))
         return container
     
     def element_list_group_item(self) -> Element:
