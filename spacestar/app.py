@@ -9,7 +9,6 @@ from typing import Any, Optional
 
 import jinja2
 import uvicorn
-from hx_markup import Element
 from markupsafe import Markup
 from ormspace import functions
 from starlette.applications import Starlette
@@ -22,6 +21,8 @@ from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 from starlette.datastructures import FormData
 from ormspace.settings import Settings
+
+from spacestar.model import SpaceModel
 
 response_contextvar = ContextVar("response_contextvar", default={})
 
@@ -129,10 +130,6 @@ class SpaceStar(Starlette):
             return self.templates.get_template('index.html')
         return self.index_from_string
 
-    @staticmethod
-    def element(tag, *args, **kwargs):
-        return Element(tag, *args, **kwargs)
-
     def render(self, request, / , template: str = None, source: str = None, **kwargs) -> str:
         kwargs['app'] = request.app
         kwargs['request'] = request
@@ -153,6 +150,26 @@ class SpaceStar(Starlette):
             string = f'{self.module}:{self.app_name}'
         port = kwargs.pop('port', self.settings.port)
         uvicorn.run(string, port=port, **kwargs)
+        
+    @staticmethod
+    def write_query(data: dict) -> str:
+        return functions.write_query(data)
+    
+    @staticmethod
+    def markup_detail(instance: SpaceModel):
+        return Markup(instance.element_detail())
+    
+    @staticmethod
+    def markup_list_item(instance: SpaceModel):
+        return Markup(instance.element_list_group_item())
+    
+    @staticmethod
+    def markup_item_link(instance: SpaceModel, href: str):
+        return Markup(instance.element_list_group_item_action(href=href))
+    
+    @staticmethod
+    def markup_htmx_action(instance: SpaceModel, href: str, target: str, indicator: str):
+        return Markup(instance.element_list_group_item_htmx_action(href=href, target=target, indicator=indicator))
 
     def create_route(self, path: str, *, name: str = None, methods: list[str] = None):
         def decorator(endpoint):
@@ -188,9 +205,6 @@ class SpaceStar(Starlette):
                 else:
                     result[key] = value
         return result
-        
-    @property
-    def E(self):
-        return Element
+
 
 
