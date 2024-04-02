@@ -193,7 +193,7 @@ class SpaceStar(Starlette):
     async def process_form_data(request: Request) -> dict:
         form_data: FormData = await request.form()
         data, result = defaultdict(list), {}
-        for key, value in form_data.items():
+        for key, value in form_data.multi_items():
             data[key].append(value)
         for key in data:
             if not key == 'search':
