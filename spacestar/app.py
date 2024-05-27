@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import os.path
+import os
 from collections import defaultdict
 from contextlib import asynccontextmanager
 from contextvars import ContextVar
@@ -24,7 +24,19 @@ from ormspace.settings import Settings
 
 from spacestar.model import SpaceModel
 
+settings = Settings()
+
 response_contextvar = ContextVar("response_contextvar", default={})
+
+def origin_string() -> str:
+    return f"https://{settings.space_app_hostname}"
+
+def api_key() -> str:
+    return os.getenv('DETA_API_KEY')
+
+def api_headers() -> dict[str, str]:
+    return {'x-api-key': api_key()}
+
 
 def app_context(request: Request) -> dict[str, Any]:
     return {'app': request.app}
@@ -57,7 +69,7 @@ class SpaceStar(Starlette):
     lifespan - A lifespan context function, which can be used to perform startup and shutdown tasks. This is a newer style_path that replaces the on_startup and on_shutdown handlers. Use one or the other, not both.
     """
     def __init__(self, **kwargs):
-        self.settings = Settings()
+        self.settings = settings
         middleware = kwargs.pop('middleware', [])
         middleware.insert(0, Middleware(SessionMiddleware, secret_key=self.settings.session_secret))
         self.module: str = kwargs.pop('module', 'main')
