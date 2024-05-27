@@ -38,7 +38,6 @@ async def response_context(request: Request, **kwargs):
         response_contextvar.reset(response_token)
 
 
-
 class SpaceStar(Starlette):
     """SpaceStar class is a mix of Starlette and Uvicorn for faster run of HTTP server configured for Deta Space.
     Parameters:
